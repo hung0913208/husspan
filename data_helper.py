@@ -3,13 +3,13 @@ import csv
 ENDING_ITEMSET = '-1'
 ENDING_SEQUENCE = '-2'
 
-INPUT_SEQUENCES_FILE="sample-data/sequences.csv"
-INPUT_UTILITIES_FILE="sample-data/utilities.csv"
+INPUT_SEQUENCES_FILE="foodmart-dataset/sequences.csv"
+INPUT_UTILITIES_FILE="foodmart-dataset/utilities.csv"
 
-OUTPUT_DATA_INFO_FILE = "data/info.csv"
-OUTPUT_UTILITIES_FILE = "data/utilities.csv"
-OUTPUT_REMAINING_FILE = "data/remaining.csv"
-OUTPUT_SEQUENCE_UTILITIES_FILE = "data/sequence_utilities.csv"
+OUTPUT_DATA_INFO_FILE = "foodmart-data/info.csv"
+OUTPUT_UTILITIES_FILE = "foodmart-data/utilities.csv"
+OUTPUT_REMAINING_FILE = "foodmart-data/remaining.csv"
+OUTPUT_SEQUENCE_UTILITIES_FILE = "foodmart-data/sequence_utilities.csv"
 
 if __name__ == "__main__":
     items = set()
@@ -60,7 +60,7 @@ if __name__ == "__main__":
             sequence_items = list(set(row))
             if ENDING_ITEMSET in sequence_items: sequence_items.remove(ENDING_ITEMSET)
             sequence_items.remove(ENDING_SEQUENCE)
-            sequence_items = sorted(sequence_items)
+            sequence_items = sorted(map(int, sequence_items))
 
             items = items.union(sequence_items)
 
@@ -68,22 +68,28 @@ if __name__ == "__main__":
                 '''
                     row: [1, 2, -1, 2, 3, -2], item=2 -> item_indices: [1, 3]
                 '''
-                item_indices = [i for i, v in enumerate(row) if v==item]
-                '''
-                    the first element is the item itself
-                '''
+                item_indices = [i for i, v in enumerate(row) if v==str(item)]
+
                 utilities_output_row, remaining_utilities_output_row = [0] * (len(itemset_indices) + 1), [0] * (len(itemset_indices) + 1)
-                utilities_output_row[0], remaining_utilities_output_row[0] = int(item), int(item)
+                '''
+                    the first elements in these two arrays are the item itself.
+                '''
+                utilities_output_row[0], remaining_utilities_output_row[0] = item, item
                 
                 item_index, itemset_index = 0, 0
                 item_indices_length, itemset_indices_length = len(item_indices), len(itemset_indices)
                 '''
                     Each itemset only has one instance of an item, if that item's index is smaller
-                    than an itemset, the item belongs to that itemset, otherwise it belongs to the
-                    subsequent itemsets
+                    than that of an itemset, the item belongs to that itemset, otherwise it belongs 
+                    to the subsequent itemsets.
                 '''
                 while item_index < item_indices_length and itemset_index < itemset_indices_length:
                     if item_indices[item_index] < itemset_indices[itemset_index]:
+                        '''
+                            This item belongs to this itemset. So we save its utility and remaining utility
+                            into the matrices. itemset_index+1 is because the first element of a row is occupied
+                            by the item itself.
+                        '''
                         utilities_output_row[itemset_index+1] = utilities[row_idx][item_indices[item_index]]
                         remaining_utilities_output_row[itemset_index+1] = round(sum(map(float, utilities[row_idx][item_indices[item_index]+1:])), 2)
                         itemset_index += 1
