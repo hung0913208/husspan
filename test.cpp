@@ -17,11 +17,12 @@ void husspan(Data inputData, Pattern currentPattern, float theshold) {
         Compute I-Candidates
     */
     std::set<int> iCandidates = computeICandidate(inputData, currentPattern);
-    // std::cout << "I-Extention candidates of " << currentPattern.extension_c << ": ";
+    // std::cout << "I candidates of " << currentPattern.pattern << ": ";
     // for (auto it = iCandidates.begin(); it != iCandidates.end(); ++it) {
     //     std::cout << *it << " ";
     // }
     // std::cout << std::endl;
+
     /*
         Compute S-Candidates
     */
@@ -130,16 +131,16 @@ void husspan(Data inputData, Pattern currentPattern, float theshold) {
     }
 }
 
-int main() {
+int main(int argvc, char** argv) {
 
-    float threshold = 1;
-    Data inputData("foodmart-data");
+    float threshold = std::stof(argv[1]);
+    std::string inputDataPath = argv[2];
+
+    Data inputData(inputDataPath);
 
     float* swu_list = (float*) calloc(inputData.num_items, sizeof(float));
 
     computeSWUs(inputData, swu_list);
-
-    std::cout << inputData.items[0] << " has swu " << swu_list[0] << std::endl;
 
     // for (int itemIdx = 0; itemIdx < 10; itemIdx++) {
     //     std::cout << inputData.items[itemIdx] << " has swu " << swu_list[itemIdx] << std::endl;
