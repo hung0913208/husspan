@@ -5,14 +5,11 @@
 #include "src/utilities.h"
 
 void husspan(Data inputData, Pattern currentPattern, float threshold) {
+
     /*
         Compute PEU.
     */
-    float peu = computePEU(currentPattern);
-    if (peu < threshold) {
-        // std::cout << "RETURN: PEU " << peu << " is less than the threshold" << std::endl;
-        return;
-    }
+    if (currentPattern.peu < threshold) return;
 
     /*
         Compute I-Candidates
@@ -31,6 +28,7 @@ void husspan(Data inputData, Pattern currentPattern, float threshold) {
     */
     // std::cout << ">>I-EXTENTIONS" << std::endl;
     for (int item : iCandidates) {
+
         /*
             Construct the extended pattern.
         */
@@ -38,17 +36,16 @@ void husspan(Data inputData, Pattern currentPattern, float threshold) {
         extended_pattern.pattern = currentPattern.pattern;
         extended_pattern.pattern.append(" ").append(std::to_string(item));
         // std::cout << "Extended pattern " << extended_pattern.pattern << std::endl;
+
         /*
             Construct the Utility Chain for the extended pattern.
         */
         extended_pattern.utilityChains = constructUCForIExtention(inputData, currentPattern, extended_pattern.extension_c);
         // std::cout << "Number of UCs/Sequences " << extended_pattern.utilityChains.size() << std::endl;
 
-        float patternUtility = computePatternUtility(extended_pattern);
-        if (patternUtility >= threshold) {
-            std::cout << "FOUND\t" << std::left << std::setw(120) << extended_pattern.pattern << " with utility\t" << patternUtility << std::endl;
-        } else {
-            // std::cout << "-MISSED\t" << std::left << std::setw(120) << extended_pattern.pattern << " with utility\t" << patternUtility << std::endl;
+        computePatternUtilityAndPEU(extended_pattern);
+        if (extended_pattern.utility >= threshold) {
+            std::cout << "FOUND\t" << std::left << std::setw(120) << extended_pattern.pattern << " with utility\t" << extended_pattern.utility << std::endl;
         }
 
         husspan(inputData, extended_pattern, threshold);
@@ -69,11 +66,9 @@ void husspan(Data inputData, Pattern currentPattern, float threshold) {
         extended_pattern.utilityChains = constructUCForSExtention(inputData, currentPattern, extended_pattern.extension_c);
         // std::cout << "Number of UCs/Sequences " << extended_pattern.utilityChains.size() << std::endl;
 
-        int patternUtility = computePatternUtility(extended_pattern);
-        if (patternUtility >= threshold) {
-            std::cout << "FOUND\t" << std::left << std::setw(120) << extended_pattern.pattern << " with utility\t" << patternUtility << std::endl;
-        } else {
-            // std::cout << "-MISSED\t" << std::left << std::setw(120) << extended_pattern.pattern << " with utility\t" << patternUtility << std::endl;
+        computePatternUtilityAndPEU(extended_pattern);
+        if (extended_pattern.utility >= threshold) {
+            std::cout << "FOUND\t" << std::left << std::setw(120) << extended_pattern.pattern << " with utility\t" << extended_pattern.utility << std::endl;
         }
 
         husspan(inputData, extended_pattern, threshold);
@@ -147,6 +142,8 @@ int main(int argvc, char** argv) {
             }
             // std::cout << std::endl;
         }
+
+        computePatternUtilityAndPEU(pattern);
 
         husspan(inputData, pattern, threshold);
     }

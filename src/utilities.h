@@ -63,6 +63,8 @@ class UtilityChain {
 class Pattern {
     public:
         int extension_c;
+        float utility;
+        float peu;
         std::string pattern;
         std::vector<UtilityChain> utilityChains;
 

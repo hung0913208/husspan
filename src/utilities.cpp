@@ -163,4 +163,6 @@ void UtilityChain::append(UtilityChainNode* node) {
 
 Pattern::Pattern(int extension_c) {
     this->extension_c = extension_c;
+    this->peu = 0;
+    this->utility = 0;
 }

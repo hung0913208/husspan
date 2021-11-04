@@ -8,32 +8,6 @@ void computeSWUs(Data inputData, float* swu_list) {
     }
 }
 
-float computePEU(Pattern& pattern) {
-    float peu = 0;
-    for (int uc_idx = 0; uc_idx < pattern.utilityChains.size(); uc_idx++) {
-        // std::cout << "Chain " << uc_idx << std::endl;
-        int sequence_peu = 0;
-        UtilityChainNode *current = pattern.utilityChains[uc_idx].head;
-        do {
-            if (current->ru > 0) {
-                float current_peu = current->acu + current->ru;
-                if (current_peu > sequence_peu) sequence_peu = current_peu;
-            }
-            current = current->next;
-        } while (current != NULL);
-        if (sequence_peu != 0) {
-            peu += sequence_peu;
-            pattern.utilityChains[uc_idx].seqPEU = sequence_peu;
-        }
-        // std::cout << sequence_peu << std::endl;
-    }
-    // std::cout << peu << std::endl;
-    return peu;
-}
-
-/*
-    In the same itemset.
-*/
 std::set<int> computeICandidatesInItemset(Data inputData, int seq_id, int item, int tid) {
     std::set<int> iCandidateInSequence;
     int row_idx = 0;
@@ -48,10 +22,6 @@ std::set<int> computeICandidatesInItemset(Data inputData, int seq_id, int item, 
     return iCandidateInSequence;
 }
 
-
-/*
-    In the same sequence/utility change, but go through different itemsets.
-*/
 std::set<int> computeICandidate(Data inputData, Pattern pattern, float threshold) {
     // std::cout << pattern.pattern << std::endl;
     std::set<int> iCandidates;
@@ -217,17 +187,25 @@ std::vector<UtilityChain> constructUCForSExtention(Data inputData, Pattern curre
     return utilityChains;
 }
 
-float computePatternUtility(Pattern pattern) {
-    float u = 0;
+float computePatternUtilityAndPEU(Pattern& pattern) {
     for (int uc_idx = 0; uc_idx < pattern.utilityChains.size(); uc_idx++) {
-        float sequence_u = 0;
+        float seqUtility = 0;
+        float seqPEU = 0;
         UtilityChainNode *current = pattern.utilityChains[uc_idx].head;
         do {
-            if (current->acu > sequence_u) sequence_u = current->acu;
+            if (current->acu > seqUtility) {
+                seqUtility = current->acu;
+            }
+            if (current->ru > 0) {
+                float current_peu = current->acu + current->ru;
+                if (current_peu > seqPEU) {
+                    seqPEU = current_peu;
+                }
+            }
             current = current->next;
         } while (current != NULL);
-        u += sequence_u;
-        // std::cout << "sequence utility of chain " << uc_idx << " is " << sequence_u << " and u is " << u << std::endl;
+        pattern.utility += seqUtility;
+        pattern.peu += seqPEU;
+        pattern.utilityChains[uc_idx].seqPEU = seqPEU;
     }
-    return u;
 }
