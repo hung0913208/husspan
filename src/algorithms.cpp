@@ -131,82 +131,6 @@ std::set<int> computeSCandidate(Data inputData, Pattern pattern, float threshold
     return sCandidates;
 }
 
-bool isICandidateValidForRSU(Data inputData, int seq_id, int item, int tid, int iCandidate) {
-    bool isValid = false;
-    int row_idx = 0;
-    while (inputData.utilities_info[seq_id].utilitiesBySequence[row_idx][0] != item) ++row_idx;
-    row_idx++;
-    while (row_idx < inputData.utilities_info[seq_id].utilitiesBySequence.size()) {
-        if (
-            inputData.utilities_info[seq_id].utilitiesBySequence[row_idx][0] == iCandidate &&
-            inputData.utilities_info[seq_id].utilitiesBySequence[row_idx][tid]
-        ) isValid = true;
-        row_idx++;
-    }
-    return isValid;
-}
-
-int computeRSUForICandidate(Data inputData, Pattern pattern, int iCandidate) {
-    float rsu = 0;
-    // std::cout << "Utility chain of " << pattern.pattern << std::endl;
-    for (int uc_idx = 0; uc_idx < pattern.utilityChains.size(); uc_idx++) {
-        // std::cout << "Chain " << uc_idx << std::endl;
-        UtilityChainNode *current = pattern.utilityChains[uc_idx].head;
-        bool isValidForRSU = false;
-        do {
-            // std::cout << "SID " << current->sid << " " << current->tid << std::endl;
-            if (isICandidateValidForRSU(inputData, current->sid-1, pattern.extension_c, current->tid, iCandidate)) {
-                isValidForRSU = true;
-                break;
-            }
-            current = current->next;
-        } while (current != NULL);
-        /*
-            When the extension item is valid for computing RSU.
-        */
-        if (isValidForRSU) rsu += pattern.utilityChains[uc_idx].seqPEU;
-    }
-    return rsu;
-}
-
-bool isSCandidateValidForRSU(Data inputData, int seq_id, int item, int tid, int sCandidate) {
-    bool isValid = false;
-    int row_idx = 0;
-    while (row_idx < inputData.utilities_info[seq_id].utilitiesBySequence.size()) {
-        for (int idx = tid+1; idx < inputData.utilities_info[seq_id].utilitiesBySequence[row_idx].size(); idx++) {
-            if (
-                inputData.utilities_info[seq_id].utilitiesBySequence[row_idx][0] == sCandidate &&
-                inputData.utilities_info[seq_id].utilitiesBySequence[row_idx][idx]
-            ) isValid = true;
-        }
-        row_idx++;
-    }
-    return isValid;
-}
-
-int computeRSUForSCandidate(Data inputData, Pattern pattern, int iCandidate) {
-    float rsu = 0;
-    // std::cout << "Utility chain of " << pattern.pattern << std::endl;
-    for (int uc_idx = 0; uc_idx < pattern.utilityChains.size(); uc_idx++) {
-        // std::cout << "Chain " << uc_idx << std::endl;
-        UtilityChainNode *current = pattern.utilityChains[uc_idx].head;
-        bool isValidForRSU = false;
-        do {
-            // std::cout << "SID " << current->sid << " " << current->tid << std::endl;
-            if (isSCandidateValidForRSU(inputData, current->sid-1, pattern.extension_c, current->tid, iCandidate)) {
-                isValidForRSU = true;
-                break;
-            }
-            current = current->next;
-        } while (current != NULL);
-        /*
-            When the extension item is valid for computing RSU.
-        */
-        if (isValidForRSU) rsu += pattern.utilityChains[uc_idx].seqPEU;
-    }
-    return rsu;
-}
-
 std::vector<UtilityChain> constructUCForIExtention(Data inputData, Pattern currentPattern, int extension_c) {
     std::vector<UtilityChain> utilityChains;
 
@@ -246,15 +170,6 @@ std::vector<UtilityChain> constructUCForIExtention(Data inputData, Pattern curre
         } while (curNode != NULL);
         if (extendedUtilityChain.head) utilityChains.push_back(extendedUtilityChain);
     }
-
-    // for (int uc_idx = 0; uc_idx < utilityChains.size(); uc_idx++) {
-    //     std::cout << "UC " << uc_idx << std::endl;
-    //     UtilityChainNode *node = utilityChains[uc_idx].head;
-    //     do {
-    //         std::cout << "Node " << node->sid << " " << node->tid << " " << node->acu << " " << node->ru << std::endl;
-    //         node = node->next;
-    //     } while (node != NULL);
-    // }
 
     return utilityChains;
 }
@@ -316,18 +231,3 @@ float computePatternUtility(Pattern pattern) {
     }
     return u;
 }
-
-// int pruneLowSWUItems(Data inputData, int* swu_list, int threshold) {
-//     int num_items = inputData.num_items;
-//     for (int idx = 0; idx < num_items; idx++) {
-//         if (swu_list[idx] < threshold) {
-//             num_items -= 1;
-//             for (int inner_idx = idx; inner_idx < num_items; inner_idx++) {
-//                 inputData.items[inner_idx] = inputData.items[inner_idx+1];
-//                 swu_list[inner_idx] = swu_list[inner_idx+1];
-//             }
-//             idx -= 1;
-//         }
-//     }
-//     return num_items;
-// }

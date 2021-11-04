@@ -13,69 +13,19 @@ void husspan(Data inputData, Pattern currentPattern, float threshold) {
         // std::cout << "RETURN: PEU " << peu << " is less than the threshold" << std::endl;
         return;
     }
-    // std::cout << currentPattern.pattern << " has PEU of first sequence of " << currentPattern.utilityChains[0].seqPEU;
 
     /*
         Compute I-Candidates
     */
     std::set<int> iCandidates = computeICandidate(inputData, currentPattern, threshold);
-    // std::cout << "The number of candidates of " << currentPattern.pattern << " is " << iCandidates.size() << std::endl;
-
-    // exit(1);
-    // std::cout << "I candidates of " << currentPattern.pattern << ": ";
-    // for (auto it = iCandidates.begin(); it != iCandidates.end(); ++it) {
-    //     std::cout << *it << " ";
-    // }
-    // std::cout << std::endl;
+    // std::cout << "The number of I-Candidates of " << currentPattern.pattern << " is " << iCandidates.size() << std::endl;
 
     /*
         Compute S-Candidates
     */
     std::set<int> sCandidates = computeSCandidate(inputData, currentPattern, threshold);
-    // std::cout << "S-Extention candidates of " << currentPattern.extension_c << ": ";
-    // for (auto it = sCandidates.begin(); it != sCandidates.end(); ++it) {
-    //     std::cout << *it << " ";
-    // }
-    // std::cout << std::endl;
-    /*
-        Compute RSU then remove candidates with low RSU.
-    */
-    // std::vector<int> itemsToDelete;
-    // for (int item : iCandidates) {
-    //     int itemRSU = computeRSUForICandidate(inputData, currentPattern, item);
-    //     std::cout << "I-Candidate " << item << " with RSU " << itemRSU << " " << std::endl;
-    //     if (itemRSU < threshold) {
-    //         std::cout << "REMOVE: I-Candidate RSU " << itemRSU << std::endl;
-    //         itemsToDelete.push_back(item);
-    //     }
-    // }
-    // for (int item : itemsToDelete) {
-    //     iCandidates.erase(item);
-    // }
-    // for (int item : sCandidates) {
-    //     int itemRSU = computeRSUForSCandidate(inputData, currentPattern, item);
-    //     std::cout << "S-Candidate " << item << " with RSU " << itemRSU << " " << std::endl;
-    //     if (itemRSU < threshold) {
-    //         std::cout << "REMOVE: S-Candidate RSU " << itemRSU << std::endl;
-    //         itemsToDelete.push_back(item);
-    //     }
-    // }
-    // for (int item : itemsToDelete) {
-    //     sCandidates.erase(item);
-    // }
-    /*
-        Display I/S-Candidates.
-    */
-    // std::cout << "I-Candidates ";
-    // for (int item : iCandidates) {
-    //     std::cout << item << " ";
-    // }
-    // std::cout << std::endl;
-    // std::cout << "S-Candidates ";
-    // for (int item : sCandidates) {
-    //     std::cout << item << " ";
-    // }
-    // std::cout << std::endl;
+    // std::cout << "The number of S-Candidates of " << currentPattern.pattern << " is " << sCandidates.size() << std::endl;
+
     /*
         Form new patterns by extending current patterns with I/S-Candidates.
     */
@@ -93,9 +43,6 @@ void husspan(Data inputData, Pattern currentPattern, float threshold) {
         */
         extended_pattern.utilityChains = constructUCForIExtention(inputData, currentPattern, extended_pattern.extension_c);
         // std::cout << "Number of UCs/Sequences " << extended_pattern.utilityChains.size() << std::endl;
-
-        // std::cout << "PEU of " << extended_pattern.pattern << " is " << computePEU(extended_pattern) << std::endl;
-        // std::cout << "Utitliy of " << extended_pattern.pattern << " is " << computePatternUtility(extended_pattern) << std::endl;
 
         float patternUtility = computePatternUtility(extended_pattern);
         if (patternUtility >= threshold) {
@@ -122,9 +69,6 @@ void husspan(Data inputData, Pattern currentPattern, float threshold) {
         extended_pattern.utilityChains = constructUCForSExtention(inputData, currentPattern, extended_pattern.extension_c);
         // std::cout << "Number of UCs/Sequences " << extended_pattern.utilityChains.size() << std::endl;
 
-        // std::cout << "PEU of " << extended_pattern.pattern << " is " << computePEU(extended_pattern) << std::endl;
-        // std::cout << "Utitliy of " << extended_pattern.pattern << " is " << computePatternUtility(extended_pattern) << std::endl;
-
         int patternUtility = computePatternUtility(extended_pattern);
         if (patternUtility >= threshold) {
             std::cout << "FOUND\t" << std::left << std::setw(120) << extended_pattern.pattern << " with utility\t" << patternUtility << std::endl;
@@ -146,11 +90,6 @@ int main(int argvc, char** argv) {
     float* swu_list = (float*) calloc(inputData.num_items, sizeof(float));
 
     computeSWUs(inputData, swu_list);
-
-    // for (int itemIdx = 0; itemIdx < 10; itemIdx++) {
-    //     std::cout << inputData.items[itemIdx] << " has swu " << swu_list[itemIdx] << std::endl;
-    // }
-    // std::cout << std::endl;
 
     /*
         Prune items with low SWU.
