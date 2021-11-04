@@ -4,19 +4,24 @@
 #include "src/algorithms.h"
 #include "src/utilities.h"
 
-void husspan(Data inputData, Pattern currentPattern, float theshold) {
+void husspan(Data inputData, Pattern currentPattern, float threshold) {
     /*
         Compute PEU.
     */
     float peu = computePEU(currentPattern);
-    if (peu < theshold) {
+    if (peu < threshold) {
         // std::cout << "RETURN: PEU " << peu << " is less than the threshold" << std::endl;
         return;
     }
+    // std::cout << currentPattern.pattern << " has PEU of first sequence of " << currentPattern.utilityChains[0].seqPEU;
+
     /*
         Compute I-Candidates
     */
-    std::set<int> iCandidates = computeICandidate(inputData, currentPattern);
+    std::set<int> iCandidates = computeICandidate(inputData, currentPattern, threshold);
+    // std::cout << "The number of candidates of " << currentPattern.pattern << " is " << iCandidates.size() << std::endl;
+
+    // exit(1);
     // std::cout << "I candidates of " << currentPattern.pattern << ": ";
     // for (auto it = iCandidates.begin(); it != iCandidates.end(); ++it) {
     //     std::cout << *it << " ";
@@ -26,7 +31,7 @@ void husspan(Data inputData, Pattern currentPattern, float theshold) {
     /*
         Compute S-Candidates
     */
-    std::set<int> sCandidates = computeSCandidate(inputData, currentPattern);
+    std::set<int> sCandidates = computeSCandidate(inputData, currentPattern, threshold);
     // std::cout << "S-Extention candidates of " << currentPattern.extension_c << ": ";
     // for (auto it = sCandidates.begin(); it != sCandidates.end(); ++it) {
     //     std::cout << *it << " ";
@@ -38,9 +43,9 @@ void husspan(Data inputData, Pattern currentPattern, float theshold) {
     // std::vector<int> itemsToDelete;
     // for (int item : iCandidates) {
     //     int itemRSU = computeRSUForICandidate(inputData, currentPattern, item);
-    //     // std::cout << "I-Candidate " << item << " with RSU " << itemRSU << " " << std::endl;
-    //     if (itemRSU < theshold) {
-    //         // std::cout << "REMOVE: I-Candidate RSU " << itemRSU << std::endl;
+    //     std::cout << "I-Candidate " << item << " with RSU " << itemRSU << " " << std::endl;
+    //     if (itemRSU < threshold) {
+    //         std::cout << "REMOVE: I-Candidate RSU " << itemRSU << std::endl;
     //         itemsToDelete.push_back(item);
     //     }
     // }
@@ -49,9 +54,9 @@ void husspan(Data inputData, Pattern currentPattern, float theshold) {
     // }
     // for (int item : sCandidates) {
     //     int itemRSU = computeRSUForSCandidate(inputData, currentPattern, item);
-    //     // std::cout << "S-Candidate " << item << " with RSU " << itemRSU << " " << std::endl;
-    //     if (itemRSU < theshold) {
-    //         // std::cout << "REMOVE: S-Candidate RSU " << itemRSU << std::endl;
+    //     std::cout << "S-Candidate " << item << " with RSU " << itemRSU << " " << std::endl;
+    //     if (itemRSU < threshold) {
+    //         std::cout << "REMOVE: S-Candidate RSU " << itemRSU << std::endl;
     //         itemsToDelete.push_back(item);
     //     }
     // }
@@ -93,13 +98,13 @@ void husspan(Data inputData, Pattern currentPattern, float theshold) {
         // std::cout << "Utitliy of " << extended_pattern.pattern << " is " << computePatternUtility(extended_pattern) << std::endl;
 
         float patternUtility = computePatternUtility(extended_pattern);
-        if (patternUtility >= theshold) {
+        if (patternUtility >= threshold) {
             std::cout << "FOUND\t" << std::left << std::setw(120) << extended_pattern.pattern << " with utility\t" << patternUtility << std::endl;
         } else {
             // std::cout << "-MISSED\t" << std::left << std::setw(120) << extended_pattern.pattern << " with utility\t" << patternUtility << std::endl;
         }
 
-        husspan(inputData, extended_pattern, theshold);
+        husspan(inputData, extended_pattern, threshold);
     }
 
     // std::cout << ">>S-EXTENTIONS" << std::endl;
@@ -121,13 +126,13 @@ void husspan(Data inputData, Pattern currentPattern, float theshold) {
         // std::cout << "Utitliy of " << extended_pattern.pattern << " is " << computePatternUtility(extended_pattern) << std::endl;
 
         int patternUtility = computePatternUtility(extended_pattern);
-        if (patternUtility >= theshold) {
+        if (patternUtility >= threshold) {
             std::cout << "FOUND\t" << std::left << std::setw(120) << extended_pattern.pattern << " with utility\t" << patternUtility << std::endl;
         } else {
             // std::cout << "-MISSED\t" << std::left << std::setw(120) << extended_pattern.pattern << " with utility\t" << patternUtility << std::endl;
         }
 
-        husspan(inputData, extended_pattern, theshold);
+        husspan(inputData, extended_pattern, threshold);
     }
 }
 

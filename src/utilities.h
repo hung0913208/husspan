@@ -55,7 +55,7 @@ class UtilityChainNode {
 class UtilityChain {
     public:
         UtilityChainNode* head;
-
+        float seqPEU;
         UtilityChain();
         void append(UtilityChainNode* node);
 };

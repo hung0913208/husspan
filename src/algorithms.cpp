@@ -8,7 +8,7 @@ void computeSWUs(Data inputData, float* swu_list) {
     }
 }
 
-float computePEU(Pattern pattern) {
+float computePEU(Pattern& pattern) {
     float peu = 0;
     for (int uc_idx = 0; uc_idx < pattern.utilityChains.size(); uc_idx++) {
         // std::cout << "Chain " << uc_idx << std::endl;
@@ -21,14 +21,20 @@ float computePEU(Pattern pattern) {
             }
             current = current->next;
         } while (current != NULL);
-        if (sequence_peu != 0) peu += sequence_peu;
+        if (sequence_peu != 0) {
+            peu += sequence_peu;
+            pattern.utilityChains[uc_idx].seqPEU = sequence_peu;
+        }
         // std::cout << sequence_peu << std::endl;
     }
     // std::cout << peu << std::endl;
     return peu;
 }
 
-std::set<int> computeICandidatesInSequence(Data inputData, int seq_id, int item, int tid) {
+/*
+    In the same itemset.
+*/
+std::set<int> computeICandidatesInItemset(Data inputData, int seq_id, int item, int tid) {
     std::set<int> iCandidateInSequence;
     int row_idx = 0;
     while (inputData.utilities_info[seq_id].utilitiesBySequence[row_idx][0] != item) ++row_idx;
@@ -42,16 +48,46 @@ std::set<int> computeICandidatesInSequence(Data inputData, int seq_id, int item,
     return iCandidateInSequence;
 }
 
-std::set<int> computeICandidate(Data inputData, Pattern pattern) {
+
+/*
+    In the same sequence/utility change, but go through different itemsets.
+*/
+std::set<int> computeICandidate(Data inputData, Pattern pattern, float threshold) {
+    // std::cout << pattern.pattern << std::endl;
     std::set<int> iCandidates;
+    std::map<int, float> candidate_rsu;
     for (int uc_idx = 0; uc_idx < pattern.utilityChains.size(); uc_idx++) {
+
+        /*
+            Iterate through the sequence/utility-chain of the current pattern.
+        */
         UtilityChainNode *current = pattern.utilityChains[uc_idx].head;
+        std::set<int> iCandidatesInSequence;
         do {
-            std::set<int> iCandidatesInSequence = computeICandidatesInSequence(inputData, current->sid-1, pattern.extension_c, current->tid);
-            iCandidates.insert(iCandidatesInSequence.begin(), iCandidatesInSequence.end());
+            std::set<int> iCandidatesInItemset = computeICandidatesInItemset(inputData, current->sid-1, pattern.extension_c, current->tid);
+            iCandidatesInSequence.insert(iCandidatesInItemset.begin(), iCandidatesInItemset.end());
             current = current->next;
         } while (current != NULL);
+
+        /*
+            As long as a candidate within this sequence/utility-chain, its RSU should be increased by the PEU of
+            the current pattern.
+        */
+        for (int candidate : iCandidatesInSequence) candidate_rsu[candidate] += pattern.utilityChains[uc_idx].seqPEU;
+
+        // iCandidates.insert(iCandidatesInSequence.begin(), iCandidatesInSequence.end());
     }
+
+    /*
+        Only candidates whose RSUs are bigger than the threshold are accepted.
+    */
+    for (auto candidate : candidate_rsu) {
+        if (candidate.second >= threshold) {
+            iCandidates.insert(candidate.first);
+            // std::cout << "Candidate " << candidate.first << " is valid with RSU " << candidate.second << std::endl;
+        }
+    }
+
     return iCandidates;
 }
 
@@ -70,16 +106,28 @@ std::set<int> computeSCandidatesInSequence(Data inputData, int seq_id, int item,
     return sCandidateInSequence;
 }
 
-std::set<int> computeSCandidate(Data inputData, Pattern pattern) {
+std::set<int> computeSCandidate(Data inputData, Pattern pattern, float threshold) {
     std::set<int> sCandidates;
+    std::map<int, float> candidate_rsu;
     for (int uc_idx = 0; uc_idx < pattern.utilityChains.size(); uc_idx++) {
+
+        /*
+            S-Candidates exist right after the itemset of the first instance of a pattern in a sequence, so
+            for each sequence/utility-chain we only need to use the first utility node to find out all the
+            S-Candidates in that sequence/utility-chain.
+        */
         UtilityChainNode *current = pattern.utilityChains[uc_idx].head;
-        do {
-            std::set<int> sCandidatesInSequence = computeSCandidatesInSequence(inputData, current->sid-1, pattern.extension_c, current->tid);
-            sCandidates.insert(sCandidatesInSequence.begin(), sCandidatesInSequence.end());
-            current = current->next;
-        } while (current != NULL);
+        std::set<int> sCandidatesInSequence = computeSCandidatesInSequence(inputData, current->sid-1, pattern.extension_c, current->tid);
+
+        for (int candidate : sCandidatesInSequence) candidate_rsu[candidate] += pattern.utilityChains[uc_idx].seqPEU;
     }
+
+    for (auto candidate : candidate_rsu) {
+        if (candidate.second >= threshold) {
+            sCandidates.insert(candidate.first);
+        }
+    }
+
     return sCandidates;
 }
 
@@ -116,18 +164,7 @@ int computeRSUForICandidate(Data inputData, Pattern pattern, int iCandidate) {
         /*
             When the extension item is valid for computing RSU.
         */
-        if (isValidForRSU) {
-            float sequence_peu = 0;
-            UtilityChainNode *current = pattern.utilityChains[uc_idx].head;
-            do {
-                if (current->ru > 0) {
-                    float current_peu = current->acu + current->ru;
-                    if (current_peu > sequence_peu) sequence_peu = current_peu;
-                }
-                current = current->next;
-            } while (current != NULL);
-            rsu += sequence_peu;
-        }
+        if (isValidForRSU) rsu += pattern.utilityChains[uc_idx].seqPEU;
     }
     return rsu;
 }
@@ -165,18 +202,7 @@ int computeRSUForSCandidate(Data inputData, Pattern pattern, int iCandidate) {
         /*
             When the extension item is valid for computing RSU.
         */
-        if (isValidForRSU) {
-            float sequence_peu = 0;
-            UtilityChainNode *current = pattern.utilityChains[uc_idx].head;
-            do {
-                if (current->ru > 0) {
-                    float current_peu = current->acu + current->ru;
-                    if (current_peu > sequence_peu) sequence_peu = current_peu;
-                }
-                current = current->next;
-            } while (current != NULL);
-            rsu += sequence_peu;
-        }
+        if (isValidForRSU) rsu += pattern.utilityChains[uc_idx].seqPEU;
     }
     return rsu;
 }
