@@ -4,7 +4,7 @@
 #include "src/algorithms.h"
 #include "src/utilities.h"
 
-void husspan(Data inputData, Pattern currentPattern, float threshold) {
+void husspan(Data inputData, Pattern currentPattern, float threshold, int& generatedPatterns, int maxPatterns) {
 
     /*
         Compute PEU.
@@ -46,9 +46,10 @@ void husspan(Data inputData, Pattern currentPattern, float threshold) {
         computePatternUtilityAndPEU(extended_pattern);
         if (extended_pattern.utility >= threshold) {
             std::cout << "FOUND\t" << std::left << std::setw(120) << extended_pattern.pattern << " with utility\t" << extended_pattern.utility << std::endl;
+            if (++generatedPatterns > maxPatterns) exit(0);
         }
 
-        husspan(inputData, extended_pattern, threshold);
+        husspan(inputData, extended_pattern, threshold, generatedPatterns, maxPatterns);
     }
 
     // std::cout << ">>S-EXTENTIONS" << std::endl;
@@ -69,9 +70,10 @@ void husspan(Data inputData, Pattern currentPattern, float threshold) {
         computePatternUtilityAndPEU(extended_pattern);
         if (extended_pattern.utility >= threshold) {
             std::cout << "FOUND\t" << std::left << std::setw(120) << extended_pattern.pattern << " with utility\t" << extended_pattern.utility << std::endl;
+            if (++generatedPatterns > maxPatterns) exit(0);
         }
 
-        husspan(inputData, extended_pattern, threshold);
+        husspan(inputData, extended_pattern, threshold, generatedPatterns, maxPatterns);
     }
 }
 
@@ -79,7 +81,9 @@ int main(int argvc, char** argv) {
 
     float threshold = std::stof(argv[1]);
     std::string inputDataPath = argv[2];
+    int maxPatterns = std::stoi(argv[3]);
 
+    int generatedPatterns = 0;
     Data inputData(inputDataPath);
 
     float* swu_list = (float*) calloc(inputData.num_items, sizeof(float));
@@ -145,7 +149,7 @@ int main(int argvc, char** argv) {
 
         computePatternUtilityAndPEU(pattern);
 
-        husspan(inputData, pattern, threshold);
+        husspan(inputData, pattern, threshold, generatedPatterns, maxPatterns);
     }
 
     return 0;
