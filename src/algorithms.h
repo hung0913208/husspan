@@ -7,6 +7,6 @@
 void computeSWUs(Data inputData, float* swu_list);
 std::set<int> computeICandidate(Data inputData, Pattern pattern, float threshold);
 std::set<int> computeSCandidate(Data inputData, Pattern pattern, float threshold);
-std::vector<UtilityChain> constructUCForIExtention(Data inputData, Pattern currentPattern, int extension_c);
-std::vector<UtilityChain> constructUCForSExtention(Data inputData, Pattern currentPattern, int extension_c);
-float computePatternUtilityAndPEU(Pattern& pattern);
+std::vector<std::shared_ptr<UtilityChain>> constructUCForIExtention(Data inputData, Pattern currentPattern, int extension_c);
+std::vector<std::shared_ptr<UtilityChain>> constructUCForSExtention(Data inputData, Pattern currentPattern, int extension_c);
+void computePatternUtilityAndPEU(Pattern& pattern);

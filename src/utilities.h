@@ -3,6 +3,7 @@
 #include <iostream>
 #include <map>
 #include <vector>
+#include <bits/stdc++.h>
 
 const std::string DATA_INFO_FILE = "info.csv";
 const std::string UTILITIES_FILE = "utilities.csv";
@@ -52,7 +53,7 @@ class UtilityChainNode {
         UtilityChainNode(int sid, int tid, float acu, float ru);
 };
 
-class UtilityChain {
+class UtilityChain:public std::enable_shared_from_this<UtilityChain> {
     public:
         UtilityChainNode* head;
         float seqPEU;
@@ -66,7 +67,7 @@ class Pattern {
         float utility;
         float peu;
         std::string pattern;
-        std::vector<UtilityChain> utilityChains;
+        std::vector<std::shared_ptr<UtilityChain>> utilityChains;
 
         Pattern(int extension_c);
 };

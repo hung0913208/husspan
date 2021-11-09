@@ -3,13 +3,13 @@ import csv
 ENDING_ITEMSET = '-1'
 ENDING_SEQUENCE = '-2'
 
-INPUT_SEQUENCES_FILE="foodmart-dataset/sequences.csv"
-INPUT_UTILITIES_FILE="foodmart-dataset/utilities.csv"
+INPUT_SEQUENCES_FILE="kosarak-dataset/sequences.csv"
+INPUT_UTILITIES_FILE="kosarak-dataset/utilities.csv"
 
-OUTPUT_DATA_INFO_FILE = "foodmart-data/info.csv"
-OUTPUT_UTILITIES_FILE = "foodmart-data/utilities.csv"
-OUTPUT_REMAINING_FILE = "foodmart-data/remaining.csv"
-OUTPUT_SEQUENCE_UTILITIES_FILE = "foodmart-data/sequence_utilities.csv"
+OUTPUT_DATA_INFO_FILE = "kosarak-data/info.csv"
+OUTPUT_UTILITIES_FILE = "kosarak-data/utilities.csv"
+OUTPUT_REMAINING_FILE = "kosarak-data/remaining.csv"
+OUTPUT_SEQUENCE_UTILITIES_FILE = "kosarak-data/sequence_utilities.csv"
 
 if __name__ == "__main__":
     items = set()

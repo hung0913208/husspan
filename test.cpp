@@ -124,14 +124,14 @@ int main(int argvc, char** argv) {
                 */
                 if (it->utilitiesBySequence[row_idx][0] == pattern.extension_c) {
                     // std::cout << "Extension item " << pattern.extension_c << " is found!" << std::endl;
-                    UtilityChain utilityChain;
+                    std::shared_ptr<UtilityChain> utilityChain = std::make_shared<UtilityChain>();
                     /*
                         Now iterate over each tid to obtain the info for the utility chain.
                     */
                     for (int col_idx = 1; col_idx < it->utilitiesBySequence[row_idx].size(); col_idx++) {
                         if (it->utilitiesBySequence[row_idx][col_idx]) {
                             // std::cout << "At TID " << col_idx << " has utility " << it->utilitiesBySequence[row_idx][col_idx] << std::endl;
-                            utilityChain.append(
+                            utilityChain->append(
                                 new UtilityChainNode(
                                     it->sid,
                                     col_idx,

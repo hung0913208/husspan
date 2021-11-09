@@ -31,7 +31,7 @@ std::set<int> computeICandidate(Data inputData, Pattern pattern, float threshold
         /*
             Iterate through the sequence/utility-chain of the current pattern.
         */
-        UtilityChainNode *current = pattern.utilityChains[uc_idx].head;
+        UtilityChainNode *current = pattern.utilityChains[uc_idx]->head;
         std::set<int> iCandidatesInSequence;
         do {
             std::set<int> iCandidatesInItemset = computeICandidatesInItemset(inputData, current->sid-1, pattern.extension_c, current->tid);
@@ -43,7 +43,7 @@ std::set<int> computeICandidate(Data inputData, Pattern pattern, float threshold
             As long as a candidate within this sequence/utility-chain, its RSU should be increased by the PEU of
             the current pattern.
         */
-        for (int candidate : iCandidatesInSequence) candidate_rsu[candidate] += pattern.utilityChains[uc_idx].seqPEU;
+        for (int candidate : iCandidatesInSequence) candidate_rsu[candidate] += pattern.utilityChains[uc_idx]->seqPEU;
 
         // iCandidates.insert(iCandidatesInSequence.begin(), iCandidatesInSequence.end());
     }
@@ -86,10 +86,10 @@ std::set<int> computeSCandidate(Data inputData, Pattern pattern, float threshold
             for each sequence/utility-chain we only need to use the first utility node to find out all the
             S-Candidates in that sequence/utility-chain.
         */
-        UtilityChainNode *current = pattern.utilityChains[uc_idx].head;
+        UtilityChainNode *current = pattern.utilityChains[uc_idx]->head;
         std::set<int> sCandidatesInSequence = computeSCandidatesInSequence(inputData, current->sid-1, pattern.extension_c, current->tid);
 
-        for (int candidate : sCandidatesInSequence) candidate_rsu[candidate] += pattern.utilityChains[uc_idx].seqPEU;
+        for (int candidate : sCandidatesInSequence) candidate_rsu[candidate] += pattern.utilityChains[uc_idx]->seqPEU;
     }
 
     for (auto candidate : candidate_rsu) {
@@ -101,12 +101,12 @@ std::set<int> computeSCandidate(Data inputData, Pattern pattern, float threshold
     return sCandidates;
 }
 
-std::vector<UtilityChain> constructUCForIExtention(Data inputData, Pattern currentPattern, int extension_c) {
-    std::vector<UtilityChain> utilityChains;
+std::vector<std::shared_ptr<UtilityChain>> constructUCForIExtention(Data inputData, Pattern currentPattern, int extension_c) {
+    std::vector<std::shared_ptr<UtilityChain>> utilityChains;
 
     for (int uc_idx = 0; uc_idx < currentPattern.utilityChains.size(); uc_idx++) {
-        UtilityChain extendedUtilityChain;
-        UtilityChainNode *curNode = currentPattern.utilityChains[uc_idx].head;
+        std::shared_ptr<UtilityChain> extendedUtilityChain = std::make_shared<UtilityChain>();
+        UtilityChainNode *curNode = currentPattern.utilityChains[uc_idx]->head;
         do {
             int row_idx = 0;
             /*
@@ -125,31 +125,36 @@ std::vector<UtilityChain> constructUCForIExtention(Data inputData, Pattern curre
                     /*
                         We found one, we create a utility node for it.
                     */
-                    UtilityChainNode * utilityChainNode = new UtilityChainNode(
+                    // UtilityChainNode * utilityChainNode = new UtilityChainNode(
+                    //     curNode->sid, 
+                    //     curNode->tid, 
+                    //     curNode->acu + inputData.utilities_info[(curNode->sid)-1].utilitiesBySequence[row_idx][curNode->tid],
+                    //     inputData.remaining_utilities_info[(curNode->sid)-1].remainingUtilitiesBySequence[row_idx][curNode->tid]
+                    // );
+                    // std::cout << "Created node " << utilityChainNode->sid << " " << utilityChainNode->tid << " " << utilityChainNode->acu << " " << utilityChainNode->ru << std::endl;
+                    extendedUtilityChain->append(new UtilityChainNode(
                         curNode->sid, 
                         curNode->tid, 
                         curNode->acu + inputData.utilities_info[(curNode->sid)-1].utilitiesBySequence[row_idx][curNode->tid],
                         inputData.remaining_utilities_info[(curNode->sid)-1].remainingUtilitiesBySequence[row_idx][curNode->tid]
-                    );
-                    // std::cout << "Created node " << utilityChainNode->sid << " " << utilityChainNode->tid << " " << utilityChainNode->acu << " " << utilityChainNode->ru << std::endl;
-                    extendedUtilityChain.append(utilityChainNode);
+                    ));
                 };
                 row_idx++;
             }
             curNode = curNode->next;
         } while (curNode != NULL);
-        if (extendedUtilityChain.head) utilityChains.push_back(extendedUtilityChain);
+        if (extendedUtilityChain->head) utilityChains.push_back(extendedUtilityChain);
     }
 
     return utilityChains;
 }
 
-std::vector<UtilityChain> constructUCForSExtention(Data inputData, Pattern currentPattern, int extension_c) {
-    std::vector<UtilityChain> utilityChains;
+std::vector<std::shared_ptr<UtilityChain>> constructUCForSExtention(Data inputData, Pattern currentPattern, int extension_c) {
+    std::vector<std::shared_ptr<UtilityChain>> utilityChains;
 
     for (int uc_idx = 0; uc_idx < currentPattern.utilityChains.size(); uc_idx++) {
-        UtilityChain extendedUtilityChain;
-        UtilityChainNode *curNode = currentPattern.utilityChains[uc_idx].head;
+        std::shared_ptr<UtilityChain> extendedUtilityChain = std::make_shared<UtilityChain>();
+        UtilityChainNode *curNode = currentPattern.utilityChains[uc_idx]->head;
         do {
             /*
                 Consider all of items.
@@ -167,31 +172,36 @@ std::vector<UtilityChain> constructUCForSExtention(Data inputData, Pattern curre
                         inputData.utilities_info[curNode->sid-1].utilitiesBySequence[row_idx][0] == extension_c &&
                         inputData.utilities_info[curNode->sid-1].utilitiesBySequence[row_idx][tid_idx]
                     ) {
-                        UtilityChainNode * utilityChainNode = new UtilityChainNode(
+                        // UtilityChainNode * utilityChainNode = new UtilityChainNode(
+                        //     curNode->sid,
+                        //     tid_idx,
+                        //     curNode->acu + inputData.utilities_info[(curNode->sid)-1].utilitiesBySequence[row_idx][tid_idx],
+                        //     inputData.remaining_utilities_info[(curNode->sid)-1].remainingUtilitiesBySequence[row_idx][tid_idx]
+                        // );
+                        // std::cout << "Created node " << utilityChainNode->sid << " " << utilityChainNode->tid << " " << utilityChainNode->acu << " " << utilityChainNode->ru << std::endl;
+                        extendedUtilityChain->append(new UtilityChainNode(
                             curNode->sid,
                             tid_idx,
                             curNode->acu + inputData.utilities_info[(curNode->sid)-1].utilitiesBySequence[row_idx][tid_idx],
                             inputData.remaining_utilities_info[(curNode->sid)-1].remainingUtilitiesBySequence[row_idx][tid_idx]
-                        );
-                        // std::cout << "Created node " << utilityChainNode->sid << " " << utilityChainNode->tid << " " << utilityChainNode->acu << " " << utilityChainNode->ru << std::endl;
-                        extendedUtilityChain.append(utilityChainNode);
+                        ));
                     };
                 }
                 row_idx++;
             }
             curNode = curNode->next;
         } while (curNode != NULL);
-        if (extendedUtilityChain.head) utilityChains.push_back(extendedUtilityChain);
+        if (extendedUtilityChain->head) utilityChains.push_back(extendedUtilityChain);
     }
 
     return utilityChains;
 }
 
-float computePatternUtilityAndPEU(Pattern& pattern) {
+void computePatternUtilityAndPEU(Pattern& pattern) {
     for (int uc_idx = 0; uc_idx < pattern.utilityChains.size(); uc_idx++) {
         float seqUtility = 0;
         float seqPEU = 0;
-        UtilityChainNode *current = pattern.utilityChains[uc_idx].head;
+        UtilityChainNode *current = pattern.utilityChains[uc_idx]->head;
         do {
             if (current->acu > seqUtility) {
                 seqUtility = current->acu;
@@ -206,6 +216,6 @@ float computePatternUtilityAndPEU(Pattern& pattern) {
         } while (current != NULL);
         pattern.utility += seqUtility;
         pattern.peu += seqPEU;
-        pattern.utilityChains[uc_idx].seqPEU = seqPEU;
+        pattern.utilityChains[uc_idx]->seqPEU = seqPEU;
     }
 }
