@@ -3,13 +3,13 @@ import csv
 ENDING_ITEMSET = '-1'
 ENDING_SEQUENCE = '-2'
 
-INPUT_SEQUENCES_FILE="kosarak-dataset/sequences.csv"
-INPUT_UTILITIES_FILE="kosarak-dataset/utilities.csv"
+INPUT_SEQUENCES_FILE="bible-dataset/sequences.csv"
+INPUT_UTILITIES_FILE="bible-dataset/utilities.csv"
 
-OUTPUT_DATA_INFO_FILE = "kosarak-data/info.csv"
-OUTPUT_UTILITIES_FILE = "kosarak-data/utilities.csv"
-OUTPUT_REMAINING_FILE = "kosarak-data/remaining.csv"
-OUTPUT_SEQUENCE_UTILITIES_FILE = "kosarak-data/sequence_utilities.csv"
+OUTPUT_DATA_INFO_FILE = "bible-data/info.csv"
+OUTPUT_UTILITIES_FILE = "bible-data/utilities.csv"
+OUTPUT_REMAINING_FILE = "bible-data/remaining.csv"
+OUTPUT_SEQUENCE_UTILITIES_FILE = "bible-data/sequence_utilities.csv"
 
 if __name__ == "__main__":
     items = set()
@@ -107,6 +107,11 @@ if __name__ == "__main__":
     items = list(set(items))
     items = sorted(map(int, items))
     num_items = len(items)
+
+
+    # print(items == list(range(min(items), max(items)+1)))
+
+    # exit(1)
 
     with open(OUTPUT_DATA_INFO_FILE, mode='w') as file:
         csv_writer = csv.writer(file, delimiter='\t')
