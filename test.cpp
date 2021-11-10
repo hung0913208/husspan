@@ -46,7 +46,7 @@ void husspan(Data inputData, Pattern currentPattern, float threshold, int& gener
         computePatternUtilityAndPEU(extended_pattern);
         if (extended_pattern.utility >= threshold) {
             std::cout << "FOUND\t" << std::left << std::setw(120) << extended_pattern.pattern << " with utility\t" << extended_pattern.utility << std::endl;
-            if (++generatedPatterns > maxPatterns) exit(0);
+            if (++generatedPatterns >= maxPatterns) exit(0);
         }
 
         husspan(inputData, extended_pattern, threshold, generatedPatterns, maxPatterns);
@@ -70,7 +70,7 @@ void husspan(Data inputData, Pattern currentPattern, float threshold, int& gener
         computePatternUtilityAndPEU(extended_pattern);
         if (extended_pattern.utility >= threshold) {
             std::cout << "FOUND\t" << std::left << std::setw(120) << extended_pattern.pattern << " with utility\t" << extended_pattern.utility << std::endl;
-            if (++generatedPatterns > maxPatterns) exit(0);
+            if (++generatedPatterns >= maxPatterns) exit(0);
         }
 
         husspan(inputData, extended_pattern, threshold, generatedPatterns, maxPatterns);
