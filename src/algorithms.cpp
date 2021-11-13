@@ -54,7 +54,7 @@ std::set<int> computeICandidate(Data inputData, Pattern pattern, float threshold
     for (auto candidate : candidate_rsu) {
         if (candidate.second >= threshold) {
             iCandidates.insert(candidate.first);
-            // std::cout << "Candidate " << candidate.first << " is valid with RSU " << candidate.second << std::endl;
+            // std::cout << candidate.first << "-" << candidate.second << std::endl;
         }
     }
 
@@ -95,6 +95,7 @@ std::set<int> computeSCandidate(Data inputData, Pattern pattern, float threshold
     for (auto candidate : candidate_rsu) {
         if (candidate.second >= threshold) {
             sCandidates.insert(candidate.first);
+            // std::cout << candidate.first << "-" << candidate.second << std::endl;
         }
     }
 
