@@ -1,7 +1,6 @@
 #include <iostream>
 #include <iomanip>
 #include <set>
-#include <unordered_set>
 #include "src/algorithms.h"
 #include "src/utilities.h"
 
@@ -10,48 +9,54 @@ void husspan(Data inputData, Pattern currentPattern, float threshold, int& gener
     /*
         Compute PEU.
     */
-    if (currentPattern.peu < threshold) return;
+    if (currentPattern.peu < threshold) {
+        // std::cout << "ELIMINATED " << currentPattern.pattern << " PEU " << currentPattern.peu << std::endl;
+        return;
+    } 
+    else {
+        // std::cout << "VALID " << currentPattern.pattern << " PEU " << currentPattern.peu << std::endl;
+    }
 
     /*
         Compute I-Candidates
     */
-    std::unordered_set<int> iCandidates = computeICandidate(inputData, currentPattern, threshold);
+    // std::set<int> iCandidates = computeICandidate(inputData, currentPattern, threshold);
     // std::cout << "The number of I-Candidates of " << currentPattern.pattern << " is " << iCandidates.size() << std::endl;
 
     /*
         Compute S-Candidates
     */
-    std::unordered_set<int> sCandidates = computeSCandidate(inputData, currentPattern, threshold);
+    std::set<int> sCandidates = computeSCandidate(inputData, currentPattern, threshold);
     // std::cout << "The number of S-Candidates of " << currentPattern.pattern << " is " << sCandidates.size() << std::endl;
 
     /*
         Form new patterns by extending current patterns with I/S-Candidates.
     */
     // std::cout << ">>I-EXTENTIONS" << std::endl;
-    for (int item : iCandidates) {
+    // for (int item : iCandidates) {
 
         /*
             Construct the extended pattern.
         */
-        Pattern extended_pattern(item);
-        extended_pattern.pattern = currentPattern.pattern;
-        extended_pattern.pattern.append(" ").append(std::to_string(item));
+        // Pattern extended_pattern(item);
+        // extended_pattern.pattern = currentPattern.pattern;
+        // extended_pattern.pattern.append(" ").append(std::to_string(item));
         // std::cout << "Extended pattern " << extended_pattern.pattern << std::endl;
 
         /*
             Construct the Utility Chain for the extended pattern.
         */
-        extended_pattern.utilityChains = constructUCForIExtention(inputData, currentPattern, extended_pattern.extension_c);
+        // extended_pattern.utilityChains = constructUCForIExtention(inputData, currentPattern, extended_pattern.extension_c);
         // std::cout << "Number of UCs/Sequences " << extended_pattern.utilityChains.size() << std::endl;
 
-        computePatternUtilityAndPEU(extended_pattern);
-        if (extended_pattern.utility >= threshold) {
-            std::cout << "FOUND\t" << std::left << std::setw(120) << extended_pattern.pattern << " with utility\t" << extended_pattern.utility << std::endl;
-            if (++generatedPatterns >= maxPatterns) exit(0);
-        }
+    //     computePatternUtilityAndPEU(extended_pattern);
+    //     if (extended_pattern.utility >= threshold) {
+    //         std::cout << "FOUND\t" << std::left << std::setw(120) << extended_pattern.pattern << " with utility\t" << extended_pattern.utility << std::endl;
+    //         if (++generatedPatterns >= maxPatterns) exit(0);
+    //     }
 
-        husspan(inputData, extended_pattern, threshold, generatedPatterns, maxPatterns);
-    }
+    //     husspan(inputData, extended_pattern, threshold, generatedPatterns, maxPatterns);
+    // }
 
     // std::cout << ">>S-EXTENTIONS" << std::endl;
     for (int item : sCandidates) {

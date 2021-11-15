@@ -87,17 +87,33 @@ std::set<int> computeSCandidate(Data inputData, Pattern pattern, float threshold
             S-Candidates in that sequence/utility-chain.
         */
         UtilityChainNode *current = pattern.utilityChains[uc_idx]->head;
-        std::set<int> sCandidatesInSequence = computeSCandidatesInSequence(inputData, current->sid-1, pattern.extension_c, current->tid);
+        // std::set<int> sCandidatesInSequence = computeSCandidatesInSequence(inputData, current->sid-1, pattern.extension_c, current->tid);
 
-        for (int candidate : sCandidatesInSequence) candidate_rsu[candidate] += pattern.utilityChains[uc_idx]->seqPEU;
-    }
-
-    for (auto candidate : candidate_rsu) {
-        if (candidate.second >= threshold) {
-            sCandidates.insert(candidate.first);
-            // std::cout << candidate.first << "-" << candidate.second << std::endl;
+        std::set<int> sCandidatesInSequence;
+        int row_idx = 0;
+        while (row_idx < inputData.utilities_info[current->sid-1].utilitiesBySequence.size()) {
+            for (int idx = current->tid+1; idx < inputData.utilities_info[current->sid-1].utilitiesBySequence[row_idx].size(); idx++) {
+                if (inputData.utilities_info[current->sid-1].utilitiesBySequence[row_idx][idx]) {
+                    int candidate = inputData.utilities_info[current->sid-1].utilitiesBySequence[row_idx][0];
+                    if (sCandidatesInSequence.insert(candidate).second) {
+                        candidate_rsu[candidate] += pattern.utilityChains[uc_idx]->seqPEU;
+                        if (candidate_rsu[candidate] >= threshold) sCandidates.insert(candidate);
+                    }
+                    break;
+                }
+            }
+            row_idx++;
         }
+
+        // for (int candidate : sCandidatesInSequence) candidate_rsu[candidate] += pattern.utilityChains[uc_idx]->seqPEU;
     }
+
+    // for (auto candidate : candidate_rsu) {
+        // if (candidate.second >= threshold) {
+            // sCandidates.insert(candidate.first);
+            // std::cout << candidate.first << "-" << candidate.second << std::endl;
+        // }
+    // }
 
     return sCandidates;
 }
