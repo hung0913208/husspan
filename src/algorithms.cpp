@@ -8,8 +8,8 @@ void computeSWUs(Data inputData, float* swu_list) {
     }
 }
 
-std::set<int> computeICandidatesInItemset(Data inputData, int seq_id, int item, int tid) {
-    std::set<int> iCandidateInSequence;
+std::unordered_set<int> computeICandidatesInItemset(Data inputData, int seq_id, int item, int tid) {
+    std::unordered_set<int> iCandidateInSequence;
     int row_idx = 0;
     while (inputData.utilities_info[seq_id].utilitiesBySequence[row_idx][0] != item) ++row_idx;
     row_idx++;
@@ -22,9 +22,9 @@ std::set<int> computeICandidatesInItemset(Data inputData, int seq_id, int item, 
     return iCandidateInSequence;
 }
 
-std::set<int> computeICandidate(Data inputData, Pattern pattern, float threshold) {
+std::unordered_set<int> computeICandidate(Data inputData, Pattern pattern, float threshold) {
     // std::cout << pattern.pattern << std::endl;
-    std::set<int> iCandidates;
+    std::unordered_set<int> iCandidates;
     std::map<int, float> candidate_rsu;
     for (int uc_idx = 0; uc_idx < pattern.utilityChains.size(); uc_idx++) {
 
@@ -32,9 +32,9 @@ std::set<int> computeICandidate(Data inputData, Pattern pattern, float threshold
             Iterate through the sequence/utility-chain of the current pattern.
         */
         UtilityChainNode *current = pattern.utilityChains[uc_idx]->head;
-        std::set<int> iCandidatesInSequence;
+        std::unordered_set<int> iCandidatesInSequence;
         do {
-            std::set<int> iCandidatesInItemset = computeICandidatesInItemset(inputData, current->sid-1, pattern.extension_c, current->tid);
+            std::unordered_set<int> iCandidatesInItemset = computeICandidatesInItemset(inputData, current->sid-1, pattern.extension_c, current->tid);
             iCandidatesInSequence.insert(iCandidatesInItemset.begin(), iCandidatesInItemset.end());
             current = current->next;
         } while (current != NULL);
@@ -61,8 +61,8 @@ std::set<int> computeICandidate(Data inputData, Pattern pattern, float threshold
     return iCandidates;
 }
 
-std::set<int> computeSCandidatesInSequence(Data inputData, int seq_id, int item, int tid) {
-    std::set<int> sCandidateInSequence;
+std::unordered_set<int> computeSCandidatesInSequence(Data inputData, int seq_id, int item, int tid) {
+    std::unordered_set<int> sCandidateInSequence;
     int row_idx = 0;
     while (row_idx < inputData.utilities_info[seq_id].utilitiesBySequence.size()) {
         for (int idx = tid+1; idx < inputData.utilities_info[seq_id].utilitiesBySequence[row_idx].size(); idx++) {
@@ -76,8 +76,8 @@ std::set<int> computeSCandidatesInSequence(Data inputData, int seq_id, int item,
     return sCandidateInSequence;
 }
 
-std::set<int> computeSCandidate(Data inputData, Pattern pattern, float threshold) {
-    std::set<int> sCandidates;
+std::unordered_set<int> computeSCandidate(Data inputData, Pattern pattern, float threshold) {
+    std::unordered_set<int> sCandidates;
     std::map<int, float> candidate_rsu;
     for (int uc_idx = 0; uc_idx < pattern.utilityChains.size(); uc_idx++) {
 
@@ -87,7 +87,7 @@ std::set<int> computeSCandidate(Data inputData, Pattern pattern, float threshold
             S-Candidates in that sequence/utility-chain.
         */
         UtilityChainNode *current = pattern.utilityChains[uc_idx]->head;
-        std::set<int> sCandidatesInSequence = computeSCandidatesInSequence(inputData, current->sid-1, pattern.extension_c, current->tid);
+        std::unordered_set<int> sCandidatesInSequence = computeSCandidatesInSequence(inputData, current->sid-1, pattern.extension_c, current->tid);
 
         for (int candidate : sCandidatesInSequence) candidate_rsu[candidate] += pattern.utilityChains[uc_idx]->seqPEU;
     }

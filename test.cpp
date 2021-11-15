@@ -1,6 +1,7 @@
 #include <iostream>
 #include <iomanip>
 #include <set>
+#include <unordered_set>
 #include "src/algorithms.h"
 #include "src/utilities.h"
 
@@ -14,13 +15,13 @@ void husspan(Data inputData, Pattern currentPattern, float threshold, int& gener
     /*
         Compute I-Candidates
     */
-    std::set<int> iCandidates = computeICandidate(inputData, currentPattern, threshold);
+    std::unordered_set<int> iCandidates = computeICandidate(inputData, currentPattern, threshold);
     // std::cout << "The number of I-Candidates of " << currentPattern.pattern << " is " << iCandidates.size() << std::endl;
 
     /*
         Compute S-Candidates
     */
-    std::set<int> sCandidates = computeSCandidate(inputData, currentPattern, threshold);
+    std::unordered_set<int> sCandidates = computeSCandidate(inputData, currentPattern, threshold);
     // std::cout << "The number of S-Candidates of " << currentPattern.pattern << " is " << sCandidates.size() << std::endl;
 
     /*
@@ -86,23 +87,23 @@ int main(int argvc, char** argv) {
     int generatedPatterns = 0;
     Data inputData(inputDataPath);
 
-    float* swu_list = (float*) calloc(inputData.num_items, sizeof(float));
+    // float* swu_list = (float*) calloc(inputData.num_items, sizeof(float));
 
-    computeSWUs(inputData, swu_list);
+    // computeSWUs(inputData, swu_list);
 
     /*
         Prune items with low SWU.
     */
-    for (int idx = 0; idx < inputData.num_items; idx++) {
-        if (swu_list[idx] < threshold) {
-            inputData.num_items -= 1;
-            for (int inner_idx = idx; inner_idx < inputData.num_items; inner_idx++) {
-                inputData.items[inner_idx] = inputData.items[inner_idx+1];
-                swu_list[inner_idx] = swu_list[inner_idx+1];
-            }
-            idx -= 1;
-        }
-    }
+    // for (int idx = 0; idx < inputData.num_items; idx++) {
+    //     if (swu_list[idx] < threshold) {
+    //         inputData.num_items -= 1;
+    //         for (int inner_idx = idx; inner_idx < inputData.num_items; inner_idx++) {
+    //             inputData.items[inner_idx] = inputData.items[inner_idx+1];
+    //             swu_list[inner_idx] = swu_list[inner_idx+1];
+    //         }
+    //         idx -= 1;
+    //     }
+    // }
 
     /*
         Initialize UC for 1-sequences.
