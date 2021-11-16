@@ -142,23 +142,6 @@ UtilityChainNode::UtilityChainNode(int sid, int tid, float acu, float ru) {
     this->tid = tid;
     this->acu = acu;
     this->ru = ru;
-    this->next = NULL;
-}
-
-UtilityChain::UtilityChain() {
-    this->head = NULL;
-}
-
-void UtilityChain::append(UtilityChainNode* node) {
-    if (this->head == NULL) {
-        this->head = node;
-    } else {
-        UtilityChainNode *current_node = this->head;
-        while (current_node->next != NULL) {
-            current_node = current_node->next;
-        }
-        current_node->next = node;
-    }
 }
 
 Pattern::Pattern(int extension_c) {

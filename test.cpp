@@ -4,7 +4,7 @@
 #include "src/algorithms.h"
 #include "src/utilities.h"
 
-void husspan(Data inputData, Pattern currentPattern, float threshold, int& generatedPatterns, int maxPatterns) {
+void husspan(Data inputData, Pattern currentPattern, float threshold) {
 
     /*
         Compute PEU.
@@ -26,7 +26,7 @@ void husspan(Data inputData, Pattern currentPattern, float threshold, int& gener
     /*
         Compute S-Candidates
     */
-    std::set<int> sCandidates = computeSCandidate(inputData, currentPattern, threshold);
+    std::unordered_set<int> sCandidates = computeSCandidate(inputData, currentPattern, threshold);
     // std::cout << "The number of S-Candidates of " << currentPattern.pattern << " is " << sCandidates.size() << std::endl;
 
     /*
@@ -77,10 +77,9 @@ void husspan(Data inputData, Pattern currentPattern, float threshold, int& gener
         // computePatternUtilityAndPEU(extended_pattern);
         if (extended_pattern.utility >= threshold) {
             std::cout << "FOUND\t" << std::left << std::setw(120) << extended_pattern.pattern << " with utility\t" << extended_pattern.utility << std::endl;
-            // if (++generatedPatterns >= maxPatterns) exit(0);
         }
 
-        husspan(inputData, extended_pattern, threshold, generatedPatterns, maxPatterns);
+        husspan(inputData, extended_pattern, threshold);
     }
 }
 
@@ -88,9 +87,9 @@ int main(int argvc, char** argv) {
 
     float threshold = std::stof(argv[1]);
     std::string inputDataPath = argv[2];
-    int maxPatterns = std::stoi(argv[3]);
+    // int maxPatterns = std::stoi(argv[3]);
 
-    int generatedPatterns = 0;
+    // int generatedPatterns = 0;
     Data inputData(inputDataPath);
 
     // float* swu_list = (float*) calloc(inputData.num_items, sizeof(float));
@@ -114,62 +113,60 @@ int main(int argvc, char** argv) {
     /*
         Initialize UC for 1-sequences.
     */
-    // std::cout << "Considering item " << inputData.items[0] << std::endl;
     for (int item : inputData.items) {
         Pattern pattern(item);
         pattern.pattern.append(std::to_string(item));
         /*
             Iterate over each sequence.
         */
-        for (auto it = begin (inputData.utilities_info); it != end (inputData.utilities_info); it++) {
+        for (auto const& it : inputData.utilities_info) {
             /*
                 Iterate over each row.
             */
             float seqUtility = 0;
             float seqPEU = 0;
+            UtilityChain utilityChain;
 
-            for (int row_idx = 0; row_idx < it->utilitiesBySequence.size(); row_idx++) {
+            for (int row_idx = 0; row_idx < it.utilitiesBySequence.size(); ++row_idx) {
                 /*
                     The first entry of each row represents an item that belongs to this sequence.
                 */
-                if (it->utilitiesBySequence[row_idx][0] == pattern.extension_c) {
-                    // std::cout << "Extension item " << pattern.extension_c << " is found!" << std::endl;
-                    std::shared_ptr<UtilityChain> utilityChain = std::make_shared<UtilityChain>();
+                if (it.utilitiesBySequence[row_idx][0] == pattern.extension_c) {
                     /*
                         Now iterate over each tid to obtain the info for the utility chain.
                     */
-                    for (int col_idx = 1; col_idx < it->utilitiesBySequence[row_idx].size(); col_idx++) {
-                        if (it->utilitiesBySequence[row_idx][col_idx]) {
-                            float extendedACU = it->utilitiesBySequence[row_idx][col_idx];
-                            float extendedREM = inputData.remaining_utilities_info[(it->sid)-1].remainingUtilitiesBySequence[row_idx][col_idx];
+                    for (int col_idx = 1; col_idx < it.utilitiesBySequence[row_idx].size(); ++col_idx) {
+                        if (it.utilitiesBySequence[row_idx][col_idx]) {
+                            float extendedACU = it.utilitiesBySequence[row_idx][col_idx];
+                            float extendedREM = inputData.remaining_utilities_info[(it.sid)-1].remainingUtilitiesBySequence[row_idx][col_idx];
                             float extendedPEU = extendedACU + extendedREM;
-                            // std::cout << "At TID " << col_idx << " has utility " << it->utilitiesBySequence[row_idx][col_idx] << std::endl;
-                            utilityChain->append(
-                                new UtilityChainNode(
-                                    it->sid,
-                                    col_idx,
-                                    extendedACU,
-                                    extendedREM
-                                )
-                            );
+                            // std::cout << "At TID " << col_idx << " has utility " << it.utilitiesBySequence[row_idx][col_idx] << std::endl;
+                            utilityChain.chainNodes.push_back(new UtilityChainNode(it.sid, col_idx, extendedACU, extendedREM));
                             if (extendedACU > seqUtility) seqUtility = extendedACU;
                             if (extendedPEU > seqPEU) seqPEU = extendedPEU;
                         }
                     }
-                    if (utilityChain->head) {
-                        pattern.utilityChains.push_back(utilityChain);
-                        pattern.utility += seqUtility;
-                        pattern.peu += seqPEU;
-                        pattern.utilityChains[pattern.utilityChains.size()-1]->seqPEU = seqPEU;
-                    }
+
+                    // We are looking for only one extension_c over a sequence at a time.
+                    break;
                 }
+
             }
-            // std::cout << std::endl;
+
+            /*
+                All the instances info of this pattern are stored in the utilityChain,
+            */
+            if (utilityChain.chainNodes.size()) {
+                pattern.utilityChains.push_back(utilityChain);
+                pattern.utility += seqUtility;
+                pattern.peu += seqPEU;
+                pattern.utilityChains[pattern.utilityChains.size()-1].seqPEU = seqPEU;
+            }
         }
 
         // computePatternUtilityAndPEU(pattern);
 
-        husspan(inputData, pattern, threshold, generatedPatterns, maxPatterns);
+        husspan(inputData, pattern, threshold);
     }
 
     return 0;

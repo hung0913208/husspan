@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <map>
+#include <list>
 #include <vector>
 #include <bits/stdc++.h>
 
@@ -48,17 +49,13 @@ class UtilityChainNode {
         int tid;
         float acu;
         float ru;
-        UtilityChainNode* next;
-
         UtilityChainNode(int sid, int tid, float acu, float ru);
 };
 
-class UtilityChain:public std::enable_shared_from_this<UtilityChain> {
+class UtilityChain {
     public:
-        UtilityChainNode* head;
         float seqPEU;
-        UtilityChain();
-        void append(UtilityChainNode* node);
+        std::list<UtilityChainNode*> chainNodes;
 };
 
 class Pattern {
@@ -67,7 +64,7 @@ class Pattern {
         float utility;
         float peu;
         std::string pattern;
-        std::vector<std::shared_ptr<UtilityChain>> utilityChains;
+        std::vector<UtilityChain> utilityChains;
 
         Pattern(int extension_c);
 };
