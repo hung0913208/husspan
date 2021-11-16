@@ -97,7 +97,7 @@ std::set<int> computeSCandidate(Data inputData, Pattern pattern, float threshold
                     int candidate = inputData.utilities_info[current->sid-1].utilitiesBySequence[row_idx][0];
                     if (sCandidatesInSequence.insert(candidate).second) {
                         candidate_rsu[candidate] += pattern.utilityChains[uc_idx]->seqPEU;
-                        if (candidate_rsu[candidate] >= threshold) sCandidates.insert(candidate);
+                        // if (candidate_rsu[candidate] >= threshold) sCandidates.insert(candidate);
                     }
                     break;
                 }
@@ -108,12 +108,12 @@ std::set<int> computeSCandidate(Data inputData, Pattern pattern, float threshold
         // for (int candidate : sCandidatesInSequence) candidate_rsu[candidate] += pattern.utilityChains[uc_idx]->seqPEU;
     }
 
-    // for (auto candidate : candidate_rsu) {
-        // if (candidate.second >= threshold) {
-            // sCandidates.insert(candidate.first);
+    for (auto candidate : candidate_rsu) {
+        if (candidate.second >= threshold) {
+            sCandidates.insert(candidate.first);
             // std::cout << candidate.first << "-" << candidate.second << std::endl;
-        // }
-    // }
+        }
+    }
 
     return sCandidates;
 }
@@ -166,10 +166,12 @@ std::vector<std::shared_ptr<UtilityChain>> constructUCForIExtention(Data inputDa
     return utilityChains;
 }
 
-std::vector<std::shared_ptr<UtilityChain>> constructUCForSExtention(Data inputData, Pattern currentPattern, int extension_c) {
-    std::vector<std::shared_ptr<UtilityChain>> utilityChains;
+void constructUCForSExtention(Data inputData, Pattern currentPattern, Pattern& extendedPattern) {
 
     for (int uc_idx = 0; uc_idx < currentPattern.utilityChains.size(); uc_idx++) {
+        float seqUtility = 0;
+        float seqPEU = 0;
+        
         std::shared_ptr<UtilityChain> extendedUtilityChain = std::make_shared<UtilityChain>();
         UtilityChainNode *curNode = currentPattern.utilityChains[uc_idx]->head;
         do {
@@ -186,32 +188,35 @@ std::vector<std::shared_ptr<UtilityChain>> constructUCForSExtention(Data inputDa
                         We found one, we create a utility node for it.
                     */
                     if (
-                        inputData.utilities_info[curNode->sid-1].utilitiesBySequence[row_idx][0] == extension_c &&
+                        inputData.utilities_info[curNode->sid-1].utilitiesBySequence[row_idx][0] == extendedPattern.extension_c &&
                         inputData.utilities_info[curNode->sid-1].utilitiesBySequence[row_idx][tid_idx]
                     ) {
-                        // UtilityChainNode * utilityChainNode = new UtilityChainNode(
-                        //     curNode->sid,
-                        //     tid_idx,
-                        //     curNode->acu + inputData.utilities_info[(curNode->sid)-1].utilitiesBySequence[row_idx][tid_idx],
-                        //     inputData.remaining_utilities_info[(curNode->sid)-1].remainingUtilitiesBySequence[row_idx][tid_idx]
-                        // );
-                        // std::cout << "Created node " << utilityChainNode->sid << " " << utilityChainNode->tid << " " << utilityChainNode->acu << " " << utilityChainNode->ru << std::endl;
+                        float extendedACU = curNode->acu + inputData.utilities_info[(curNode->sid)-1].utilitiesBySequence[row_idx][tid_idx];
+                        float extendedREM = inputData.remaining_utilities_info[(curNode->sid)-1].remainingUtilitiesBySequence[row_idx][tid_idx];
+                        float extendedPEU = extendedACU + extendedREM;
                         extendedUtilityChain->append(new UtilityChainNode(
                             curNode->sid,
                             tid_idx,
-                            curNode->acu + inputData.utilities_info[(curNode->sid)-1].utilitiesBySequence[row_idx][tid_idx],
-                            inputData.remaining_utilities_info[(curNode->sid)-1].remainingUtilitiesBySequence[row_idx][tid_idx]
+                            extendedACU,
+                            extendedREM
                         ));
+                        if (extendedACU > seqUtility) seqUtility = extendedACU;
+                        if (extendedPEU > seqPEU) seqPEU = extendedPEU;
                     };
                 }
                 row_idx++;
             }
             curNode = curNode->next;
         } while (curNode != NULL);
-        if (extendedUtilityChain->head) utilityChains.push_back(extendedUtilityChain);
-    }
 
-    return utilityChains;
+        if (extendedUtilityChain->head) {
+            extendedPattern.utilityChains.push_back(extendedUtilityChain);
+            extendedPattern.utility += seqUtility;
+            extendedPattern.peu += seqPEU;
+            extendedPattern.utilityChains[extendedPattern.utilityChains.size()-1]->seqPEU = seqPEU;
+        }
+
+    }
 }
 
 void computePatternUtilityAndPEU(Pattern& pattern) {
