@@ -147,7 +147,9 @@ int main(int argvc, char** argv) {
                         }
                     }
 
-                    // We are looking for only one extension_c over a sequence at a time.
+                    /*
+                        Right after we found the extension_c, we can stop and continue with the next sequence/utility-chain.
+                    */
                     break;
                 }
 

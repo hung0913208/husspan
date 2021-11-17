@@ -155,23 +155,30 @@ void constructUCForSExtention(Data inputData, Pattern currentPattern, Pattern& e
             */
             for (int row_idx = 0; row_idx < inputData.utilities_info[curNode->sid-1].utilitiesBySequence.size(); ++row_idx) {
                 /*
-                    Only look for items with tid > the extension point's tid.
+                    The first entry of each row represents an item that belongs to this sequence.
                 */
-                for (int tid_idx = curNode->tid+1 ; tid_idx < inputData.utilities_info[curNode->sid-1].utilitiesBySequence[row_idx].size(); tid_idx++) {
+                if (inputData.utilities_info[curNode->sid-1].utilitiesBySequence[row_idx][0] == extendedPattern.extension_c) {
                     /*
-                        We found one, we create a utility node for it.
+                        Only look for items with tid > the extension point's tid.
                     */
-                    if (
-                        inputData.utilities_info[curNode->sid-1].utilitiesBySequence[row_idx][0] == extendedPattern.extension_c &&
-                        inputData.utilities_info[curNode->sid-1].utilitiesBySequence[row_idx][tid_idx]
-                    ) {
-                        float extendedACU = curNode->acu + inputData.utilities_info[(curNode->sid)-1].utilitiesBySequence[row_idx][tid_idx];
-                        float extendedREM = inputData.remaining_utilities_info[(curNode->sid)-1].remainingUtilitiesBySequence[row_idx][tid_idx];
-                        float extendedPEU = extendedACU + extendedREM;
-                        extendedUtilityChain.chainNodes.push_back(new UtilityChainNode(curNode->sid, tid_idx, extendedACU, extendedREM));
-                        if (extendedACU > seqUtility) seqUtility = extendedACU;
-                        if (extendedPEU > seqPEU) seqPEU = extendedPEU;
-                    };
+                    for (int tid_idx = curNode->tid+1 ; tid_idx < inputData.utilities_info[curNode->sid-1].utilitiesBySequence[row_idx].size(); tid_idx++) {
+                        /*
+                            We found one, we create a utility node for it.
+                        */
+                        if (inputData.utilities_info[curNode->sid-1].utilitiesBySequence[row_idx][tid_idx]) {
+                            float extendedACU = curNode->acu + inputData.utilities_info[(curNode->sid)-1].utilitiesBySequence[row_idx][tid_idx];
+                            float extendedREM = inputData.remaining_utilities_info[(curNode->sid)-1].remainingUtilitiesBySequence[row_idx][tid_idx];
+                            float extendedPEU = extendedACU + extendedREM;
+                            extendedUtilityChain.chainNodes.push_back(new UtilityChainNode(curNode->sid, tid_idx, extendedACU, extendedREM));
+                            if (extendedACU > seqUtility) seqUtility = extendedACU;
+                            if (extendedPEU > seqPEU) seqPEU = extendedPEU;
+                        };
+                    }
+                    
+                    /*
+                        Right after we found the extension_c, we can stop and continue with the next sequence/utility-chain.
+                    */
+                    break;
                 }
             }
         }
