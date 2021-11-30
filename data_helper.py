@@ -3,13 +3,13 @@ import csv
 ENDING_ITEMSET = '-1'
 ENDING_SEQUENCE = '-2'
 
-INPUT_SEQUENCES_FILE="../cleaned-bms2-dataset/sequences.csv"
-INPUT_UTILITIES_FILE="../cleaned-bms2-dataset/utilities.csv"
+INPUT_SEQUENCES_FILE="../sample-datasets/sample-data-2/sequences.csv"
+INPUT_UTILITIES_FILE="../sample-datasets/sample-data-2/utilities.csv"
 
-OUTPUT_DATA_INFO_FILE = "cleaned-bms2-data/info.csv"
-OUTPUT_UTILITIES_FILE = "cleaned-bms2-data/utilities.csv"
-OUTPUT_REMAINING_FILE = "cleaned-bms2-data/remaining.csv"
-OUTPUT_SEQUENCE_UTILITIES_FILE = "cleaned-bms2-data/sequence_utilities.csv"
+OUTPUT_DATA_INFO_FILE = "data/info.csv"
+OUTPUT_UTILITIES_FILE = "data/utilities.csv"
+OUTPUT_REMAINING_FILE = "data/remaining.csv"
+OUTPUT_SEQUENCE_UTILITIES_FILE = "data/sequence_utilities.csv"
 
 if __name__ == "__main__":
     items = set()

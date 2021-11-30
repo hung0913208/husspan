@@ -1,7 +1,5 @@
 #include "utils.h"
 #include <iostream>
-#include <unordered_map>
-#include <map>
 #include <numeric>
 
 RawData::RawData(std::string inputDataPath) {
@@ -37,6 +35,16 @@ RawData::RawData(std::string inputDataPath) {
         utilities.push_back(itemUtilities);
         sequenceUtilities.push_back(sequenceUtility);
     }
+}
+
+UtilitiyInfoBySequence::UtilitiyInfoBySequence(int sid, std::vector<std::vector<float>> utilitiesBySequence) {
+    this->sid = sid;
+    this->utilitiesBySequence = utilitiesBySequence;
+}
+
+RemainingUtilitiyInfoBySequence::RemainingUtilitiyInfoBySequence(int sid, std::vector<std::vector<float>> remUtilitiesBySequence) {
+    this->sid = sid;
+    this->remUtilitiesBySequence = remUtilitiesBySequence;
 }
 
 Data::Data(RawData rawData, const float THRESHOLD) {
@@ -95,14 +103,16 @@ Data::Data(RawData rawData, const float THRESHOLD) {
         }
     }
     numSequences = _sequences.size();
+    distinctItems.resize(numDistinctItems);
+    std::iota (distinctItems.begin(), distinctItems.end(), 1);
     /*
         Now we construct utilities and remaining utilities matricies.
     */
-    std::vector<std::map<int, std::vector<float>>> utilities;
-    std::vector<std::map<int, std::vector<float>>> remUtilities;
+    std::vector<std::unordered_map<int, std::vector<float>>> utilities;
+    std::vector<std::unordered_map<int, std::vector<float>>> remUtilities;
     for (int seqID = 0; seqID < _sequences.size(); ++seqID) {
-        std::map<int, std::vector<float>> utilitiesBySequence;
-        std::map<int, std::vector<float>> remUtilitiesBySequence;
+        std::unordered_map<int, std::vector<float>> utilitiesBySequence;
+        std::unordered_map<int, std::vector<float>> remUtilitiesBySequence;
         int itemsetCount = 0;
         float prefixUtility = 0;
         for (int itemIdx = 0; itemIdx < _sequences[seqID].size(); ++itemIdx) {
@@ -127,15 +137,35 @@ Data::Data(RawData rawData, const float THRESHOLD) {
         remUtilities.push_back(remUtilitiesBySequence);
     }
 
-    std::cout << "#seqs " << numSequences << ", #items " << numDistinctItems << std::endl;
+    for (int seqID = 0; seqID < utilities.size(); ++seqID) {
+        std::vector<std::vector<float>> utilitiesBySequence;
+        std::vector<std::vector<float>> remUtilitiesBySequence;
+        for (auto const& item : utilities[seqID]) {
+            std::vector<float> row;
+            row.push_back(item.first);
+            for (int utility : item.second) row.push_back(utility);
+            utilitiesBySequence.push_back(row);
+        }
+        for (auto const& item : remUtilities[seqID]) {
+            std::vector<float> row;
+            row.push_back(item.first);
+            for (int remUtility : item.second) row.push_back(remUtility);
+            remUtilitiesBySequence.push_back(row);
+        }
+        utilitiesData.push_back(new UtilitiyInfoBySequence(seqID, utilitiesBySequence));
+        remUtilitiesData.push_back(new RemainingUtilitiyInfoBySequence(seqID, remUtilitiesBySequence));
+    }
+}
 
-    // for (auto const& seq : remUtilities) {
-    //     for (auto const& it : seq) {
-    //         std::cout << it.first << " ";
-    //         for (auto const& remUtil : it.second) std::cout << remUtil << " ";
-    //         std::cout << std::endl;
-    //     }
-    //     std::cout << std::endl;
-    // }
+UtilityChainNode::UtilityChainNode(int sid, int tid, float acu, float ru) {
+    this->sid = sid;
+    this->tid = tid;
+    this->acu = acu;
+    this->ru = ru;
+}
 
+Pattern::Pattern(const int extension_c) {
+    this->extension_c = extension_c;
+    this->peu = 0;
+    this->utility = 0;
 }

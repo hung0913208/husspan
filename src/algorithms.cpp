@@ -168,10 +168,12 @@ void constructUCForSExtention(Data inputData, Pattern currentPattern, Pattern& e
                         if (inputData.utilities_info[curNode->sid-1].utilitiesBySequence[row_idx][tid_idx]) {
                             float extendedACU = curNode->acu + inputData.utilities_info[(curNode->sid)-1].utilitiesBySequence[row_idx][tid_idx];
                             float extendedREM = inputData.remaining_utilities_info[(curNode->sid)-1].remainingUtilitiesBySequence[row_idx][tid_idx];
-                            float extendedPEU = extendedACU + extendedREM;
+                            if (extendedREM) {
+                                float extendedPEU = extendedACU + extendedREM;
+                                if (extendedPEU > seqPEU) seqPEU = extendedPEU;
+                            }
                             extendedUtilityChain.chainNodes.push_back(new UtilityChainNode(curNode->sid, tid_idx, extendedACU, extendedREM));
                             if (extendedACU > seqUtility) seqUtility = extendedACU;
-                            if (extendedPEU > seqPEU) seqPEU = extendedPEU;
                         };
                     }
                     
