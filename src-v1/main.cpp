@@ -2,8 +2,11 @@
 #include <iomanip>
 #include "utils.h"
 #include "algorithms.h"
+#include <functional>
+#include <taskflow/taskflow.hpp>
 
 void husspan(Data inputData, Pattern currentPattern, float threshold) {
+    // std::cout << "Pattern " << currentPattern.pattern << "thread " << std::this_thread::get_id() << std::endl;
     /*
         Compute PEU.
     */
@@ -42,6 +45,8 @@ int main(int argvc, char** argv) {
     RawData rawData(INPUT_DATA_PATH);
     Data inputData(rawData, THRESHOLD);
 
+    tf::Executor executor;
+    tf::Taskflow taskflow;
     /*
         Initialize UC for 1-sequences.
     */
@@ -96,11 +101,11 @@ int main(int argvc, char** argv) {
                 pattern.utilityChains[pattern.utilityChains.size()-1].seqPEU = seqPEU;
             }
         }
-
-        // std::cout << pattern.pattern << "-" << pattern.utilityChains.size() << std::endl;
-
-        husspan(inputData, pattern, THRESHOLD);
+        
+        taskflow.emplace([=](){ husspan(inputData, pattern, THRESHOLD); });
     }
+
+    executor.run(taskflow).wait();
 
     return 0;
 }
