@@ -5,14 +5,16 @@
 #include <functional>
 #include <taskflow/taskflow.hpp>
 
-void husspan(Data inputData, Pattern currentPattern, float threshold) {
+void husspan(Data inputData, Pattern currentPattern, float THRESHOLD) {
+    // tf::Executor executor;
+    // tf::Taskflow taskflow;
     // std::cout << "Pattern " << currentPattern.pattern << "thread " << std::this_thread::get_id() << std::endl;
     /*
         Compute PEU.
     */
-    if (currentPattern.peu < threshold) return;
+    if (currentPattern.peu < THRESHOLD) return;
 
-    std::unordered_set<int> sCandidates = computeSCandidate(inputData, currentPattern, threshold);
+    std::unordered_set<int> sCandidates = computeSCandidate(inputData, currentPattern, THRESHOLD);
     // std::cout << "The number of S-Candidates of " << currentPattern.pattern << " is " << sCandidates.size() << std::endl;
 
     /*
@@ -29,12 +31,15 @@ void husspan(Data inputData, Pattern currentPattern, float threshold) {
 
         constructUCForSExtention(inputData, currentPattern, extended_pattern);
 
-        if (extended_pattern.utility >= threshold) {
+        if (extended_pattern.utility >= THRESHOLD) {
             std::cout << "FOUND\t" << std::left << std::setw(120) << extended_pattern.pattern << " with utility\t" << extended_pattern.utility << std::endl;
         }
 
-        husspan(inputData, extended_pattern, threshold);
+        husspan(inputData, extended_pattern, THRESHOLD);
+        // taskflow.emplace([=](){ husspan(inputData, extended_pattern, THRESHOLD); });
     }
+
+    // executor.run(taskflow).wait();
 }
 
 int main(int argvc, char** argv) {
@@ -102,6 +107,10 @@ int main(int argvc, char** argv) {
             }
         }
         
+        if (pattern.utility >= THRESHOLD) 
+            std::cout << "FOUND\t" << std::left << std::setw(120) << pattern.pattern << " with utility\t" << pattern.utility << std::endl;
+        
+        // husspan(inputData, pattern, THRESHOLD);
         taskflow.emplace([=](){ husspan(inputData, pattern, THRESHOLD); });
     }
 
